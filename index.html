@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversio - AI Language Learning Chatbot</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: flex-end; /* Change this to move container to the right */
+            height: 100vh;
+            background: linear-gradient(120deg, #17252a 0%, #def2f1 100%);
+            overflow: hidden;
+        }
+        @keyframes moveBackground {
+            0% { background-position: 0 0; }
+            100% { background-position: 1000px 1000px; }
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background: url('https://www.transparenttextures.com/patterns/cubes.png');
+            opacity: 0.5;
+            animation: moveBackground 60s linear infinite;
+        }
+        .logo {
+            width: 20%;
+            max-width: 200px;
+            padding: 20px;
+            text-align: center;
+            z-index: 1;
+        }
+        .logo img {
+            width: 100%;
+            height: auto;
+        }
+        .container {
+            background-color: #def2f1;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 70%;
+            height: 90%;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            margin-bottom: 10px;
+            font-size: 32px;
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #555;
+            text-align: center;
+        }
+        .chat-box {
+            flex: 1;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #fafafa;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .input-group button {  
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .input-group button:hover {
+            background-color: #17252a;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        .user-message {
+            background-color: #3aafa9;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #def2f1;
+            text-align: left;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        .typing {
+            display: none;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #2b7a78;
+            text-align: left;
+            font-style: italic;
+            font-size: 16px;
+        }
+        .typing span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 50%;
+            margin-right: 4px;
+            animation: typing 1s infinite alternate;
+        }
+        .typing span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            from {
+                transform: translateY(0);
+            }
+            to {
+                transform: translateY(-8px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="C:\Coding\Python\llama_env\Scripts\templates\Conversio.jpg" alt="Conversio Logo"> 
+    </div>
+    <div class="container">
+        <h1>Conversio</h1>
+        <h2>AI Language Learning Chatbot</h2>
+        <div class="chat-box" id="chat-box"></div>
+        <div class="typing" id="typing-indicator">
+            <span></span><span></span><span></span> Bot is typing...
+        </div>
+        <div class="input-group">
+            <input type="text" id="user-input" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    <script>
+        let context = "";
+        const language = prompt("Which language would you like to learn?");
+        document.getElementById("chat-box").innerHTML += `<div class='message bot-message'><strong>Bot:</strong> Welcome to Conversio! Type 'exit' to quit.</div>`;
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById("user-input").value;
+            if (userInput.toLowerCase() === "exit") {
+                alert("Thank you for using Conversio!");
+                return;
+            }
+            document.getElementById("chat-box").innerHTML += `<div class='message user-message'><strong>You:</strong> ${userInput}</div>`;
+            context += `\nUser: ${userInput}\n`;
+
+            // Clear the input box
+            document.getElementById("user-input").value = "";
+
+            // Show typing indicator
+            document.getElementById("typing-indicator").style.display = "block";
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ context: context, language: language, question: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const botResponse = data.response;
+                // Hide typing indicator
+                document.getElementById("typing-indicator").style.display = "none";
+                document.getElementById("chat-box").innerHTML += `<div class='message bot-message'><strong>Bot:</strong> ${botResponse}</div>`;
+                context += `AI: ${botResponse}\n`;
+                document.getElementById("chat-box").scrollTop = document.getElementById("chat-box").scrollHeight;
+
+                // Use the Web Speech API for TTS
+                const utterance = new SpeechSynthesisUtterance(botResponse);
+                speechSynthesis.speak(utterance);
+            });
+        }
+    </script>
+</body>
+</html>
